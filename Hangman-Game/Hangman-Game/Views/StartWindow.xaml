@@ -1,0 +1,280 @@
+﻿<Window x:Class="Hangman_Game.Views.StartWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Hangman Game"
+        Height="650"
+        Width="1100"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="#120B0B">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#F7D28D"/>
+            <Setter Property="Background" Value="#2A1B1B"/>
+            <Setter Property="BorderBrush" Value="#D18A2C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3A2525"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#E3A74B"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1E1212"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#C47B1C"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#241919"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8A6A3D"/>
+                                <Setter Property="Foreground" Value="#C8A977"/>
+                                <Setter Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F2D8A7"/>
+        </Style>
+
+        <Style x:Key="StartListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                CornerRadius="8"
+                                Padding="6">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2A1B1B"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#7A4A2A"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1"/>
+                            </Trigger>
+
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3A2525"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#D18A2C"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="border" Property="Background" Value="#452B2B"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#E3A74B"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#140B0B" Offset="0"/>
+                <GradientStop Color="#261313" Offset="0.5"/>
+                <GradientStop Color="#120909" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Select Profile"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Bottom"
+                       Foreground="#F0C27B"/>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="#150D0D"
+                        BorderBrush="#5B3636"
+                        BorderThickness="2"
+                        CornerRadius="10"
+                        Padding="12">
+                    <ListBox ItemsSource="{Binding Users}"
+                             SelectedItem="{Binding SelectedUser}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             HorizontalContentAlignment="Stretch"
+                             FocusVisualStyle="{x:Null}"
+                             ItemContainerStyle="{StaticResource StartListBoxItemStyle}" d:ItemsSource="{d:SampleData ItemCount=5}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="4">
+                                    <Grid Width="52"
+                                          Height="52"
+                                          Margin="0,0,10,0">
+                                        <Ellipse Fill="#130B0B"/>
+
+                                        <Ellipse Stroke="#D18A2C"
+                                                 StrokeThickness="1">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding AvatarFullPath}"
+                                                            Stretch="UniformToFill"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </Grid>
+
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Username}"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#F0C27B"/>
+                                        <TextBlock Text="{Binding Level, StringFormat=Level {0}}"
+                                                   FontSize="13"
+                                                   Foreground="#C7A57A"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+
+                <Border Grid.Column="2"
+                        Background="#1A1010"
+                        BorderBrush="#5B3636"
+                        BorderThickness="2"
+                        CornerRadius="14"
+                        Padding="20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="280"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Width="260"
+                                  Height="260"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center">
+                                <Rectangle RadiusX="18"
+                                           RadiusY="18"
+                                           Fill="#120B0B"/>
+
+                                <Rectangle Stroke="#D18A2C"
+                                           StrokeThickness="2"
+                                           RadiusX="18"
+                                           RadiusY="18">
+                                    <Rectangle.Fill>
+                                        <ImageBrush ImageSource="{Binding SelectedUser.AvatarFullPath}"
+                                                    Stretch="UniformToFill"/>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Grid>
+
+                            <StackPanel Grid.Column="2"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedUser.Username, TargetNullValue=No profile selected}"
+                                           FontSize="34"
+                                           FontWeight="Bold"
+                                           Foreground="#F0C27B"
+                                           Margin="0,0,0,12"/>
+
+                                <TextBlock Text="{Binding SelectedUser.Level, StringFormat=Level {0}, TargetNullValue=Level -}"
+                                           FontSize="20"
+                                           Margin="0,0,0,12"/>
+
+                                <TextBlock Text="{Binding SelectedUser.GamesPlayed, StringFormat=Games Played: {0}, TargetNullValue=Games Played: 0}"
+                                           FontSize="18"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock Text="{Binding SelectedUser.GamesWon, StringFormat=Wins: {0}, TargetNullValue=Wins: 0}"
+                                           FontSize="18"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock FontSize="18"
+                                           Visibility="{Binding HasSelectedUser, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Run Text="Win Rate: "/>
+                                    <Run Text="{Binding SelectedUser.GamesWon}"/>
+                                    <Run Text="/"/>
+                                    <Run Text="{Binding SelectedUser.GamesPlayed}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,20,0,0">
+                            <Button Content="New Profile"
+                                    Width="160"
+                                    Command="{Binding NewProfileCommand}"/>
+                            <Button Content="Delete"
+                                    Width="120"
+                                    Command="{Binding DeleteUserCommand}"/>
+                            <Button Content="Play"
+                                    Width="120"
+                                    Command="{Binding PlayCommand}"/>
+                            <Button Content="Exit"
+                                    Width="120"
+                                    Command="{Binding ExitCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

@@ -9,4 +9,23 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Assets\Avatars\avatar1.png" />
+    <None Remove="Assets\Avatars\avatar2.png" />
+    <None Remove="Assets\Avatars\emptyAvatar.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Avatars\avatar1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
 </Project>
