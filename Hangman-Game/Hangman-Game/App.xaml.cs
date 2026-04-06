@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace HangedMan_Game
+namespace Hangman_Game
 {
     /// <summary>
     /// Interaction logic for App.xaml

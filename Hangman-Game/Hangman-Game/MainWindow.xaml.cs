@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace HangedMan_Game
+namespace Hangman_Game
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
