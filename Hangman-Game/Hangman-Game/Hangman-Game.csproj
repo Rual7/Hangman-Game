@@ -11,7 +11,17 @@
 
   <ItemGroup>
     <None Remove="Assets\Avatars\avatar1.png" />
+    <None Remove="Assets\Avatars\avatar10.png" />
     <None Remove="Assets\Avatars\avatar2.png" />
+    <None Remove="Assets\Avatars\avatar3.png" />
+    <None Remove="Assets\Avatars\avatar4.png" />
+    <None Remove="Assets\Avatars\avatar5.png" />
+    <None Remove="Assets\Avatars\avatar6.png" />
+    <None Remove="Assets\Avatars\avatar60.png" />
+    <None Remove="Assets\Avatars\avatar7.png" />
+    <None Remove="Assets\Avatars\avatar70.png" />
+    <None Remove="Assets\Avatars\avatar8.png" />
+    <None Remove="Assets\Avatars\avatar9.png" />
     <None Remove="Assets\Avatars\emptyAvatar.png" />
   </ItemGroup>
 
@@ -19,7 +29,31 @@
     <Content Include="Assets\Avatars\avatar1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\Avatars\avatar10.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Avatars\avatar2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar6.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar60.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar7.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Avatars\avatar70.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
