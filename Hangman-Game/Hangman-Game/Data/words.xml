@@ -1,0 +1,157 @@
+<HangmanWords>
+
+  <Category name="Cars">
+    <Word>bmw</Word>
+    <Word>audi</Word>
+    <Word>ford</Word>
+    <Word>tesla</Word>
+    <Word>toyota</Word>
+    <Word>honda</Word>
+    <Word>mazda</Word>
+    <Word>volvo</Word>
+    <Word>lexus</Word>
+    <Word>nissan</Word>
+    <Word>kia</Word>
+    <Word>hyundai</Word>
+    <Word>ferrari</Word>
+    <Word>lamborghini</Word>
+    <Word>porsche</Word>
+    <Word>jaguar</Word>
+    <Word>peugeot</Word>
+    <Word>renault</Word>
+    <Word>dacia</Word>
+    <Word>skoda</Word>
+  </Category>
+
+  <Category name="Movies">
+    <Word>avatar</Word>
+    <Word>titanic</Word>
+    <Word>inception</Word>
+    <Word>gladiator</Word>
+    <Word>matrix</Word>
+    <Word>rocky</Word>
+    <Word>jaws</Word>
+    <Word>frozen</Word>
+    <Word>coco</Word>
+    <Word>batman</Word>
+    <Word>superman</Word>
+    <Word>spiderman</Word>
+    <Word>joker</Word>
+    <Word>interstellar</Word>
+    <Word>gravity</Word>
+    <Word>dune</Word>
+    <Word>alien</Word>
+    <Word>terminator</Word>
+    <Word>godfather</Word>
+    <Word>scarface</Word>
+  </Category>
+
+  <Category name="Rivers">
+    <Word>nile</Word>
+    <Word>amazon</Word>
+    <Word>danube</Word>
+    <Word>volga</Word>
+    <Word>rhine</Word>
+    <Word>mekong</Word>
+    <Word>ganges</Word>
+    <Word>thames</Word>
+    <Word>elbe</Word>
+    <Word>po</Word>
+    <Word>yangtze</Word>
+    <Word>mississippi</Word>
+    <Word>indus</Word>
+    <Word>tigris</Word>
+    <Word>euphrates</Word>
+  </Category>
+
+  <Category name="Halloween">
+    <Word>zombie</Word>
+    <Word>witch</Word>
+    <Word>ghost</Word>
+    <Word>vampire</Word>
+    <Word>monster</Word>
+    <Word>pumpkin</Word>
+    <Word>skeleton</Word>
+    <Word>spider</Word>
+    <Word>demon</Word>
+    <Word>curse</Word>
+    <Word>haunted</Word>
+    <Word>graveyard</Word>
+    <Word>phantom</Word>
+    <Word>shadow</Word>
+    <Word>midnight</Word>
+  </Category>
+
+  <Category name="Animals">
+    <Word>dog</Word>
+    <Word>cat</Word>
+    <Word>lion</Word>
+    <Word>tiger</Word>
+    <Word>elephant</Word>
+    <Word>giraffe</Word>
+    <Word>zebra</Word>
+    <Word>wolf</Word>
+    <Word>fox</Word>
+    <Word>bear</Word>
+    <Word>rabbit</Word>
+    <Word>deer</Word>
+    <Word>monkey</Word>
+    <Word>kangaroo</Word>
+    <Word>panda</Word>
+  </Category>
+
+  <Category name="Food">
+    <Word>pizza</Word>
+    <Word>burger</Word>
+    <Word>pasta</Word>
+    <Word>salad</Word>
+    <Word>soup</Word>
+    <Word>bread</Word>
+    <Word>cheese</Word>
+    <Word>chicken</Word>
+    <Word>steak</Word>
+    <Word>cake</Word>
+    <Word>chocolate</Word>
+    <Word>cookie</Word>
+    <Word>sandwich</Word>
+    <Word>rice</Word>
+    <Word>noodles</Word>
+  </Category>
+
+  <Category name="Technology">
+    <Word>computer</Word>
+    <Word>keyboard</Word>
+    <Word>monitor</Word>
+    <Word>internet</Word>
+    <Word>software</Word>
+    <Word>hardware</Word>
+    <Word>network</Word>
+    <Word>database</Word>
+    <Word>program</Word>
+    <Word>server</Word>
+    <Word>router</Word>
+    <Word>algorithm</Word>
+    <Word>function</Word>
+    <Word>variable</Word>
+    <Word>application</Word>
+  </Category>
+
+  <Category name="General">
+    <Word>house</Word>
+    <Word>river</Word>
+    <Word>mountain</Word>
+    <Word>forest</Word>
+    <Word>ocean</Word>
+    <Word>planet</Word>
+    <Word>school</Word>
+    <Word>teacher</Word>
+    <Word>student</Word>
+    <Word>friend</Word>
+    <Word>family</Word>
+    <Word>holiday</Word>
+    <Word>travel</Word>
+    <Word>music</Word>
+    <Word>art</Word>
+  </Category>
+
+</HangmanWords>
