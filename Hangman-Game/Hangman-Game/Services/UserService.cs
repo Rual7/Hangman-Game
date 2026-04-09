@@ -9,16 +9,16 @@ namespace Hangman_Game.Services;
 public class UserService : IUserService
 {
     private readonly string _dataFolder;
-    private readonly string _avatarsFolder;
+    private readonly string _defaultAvatarsFolder;
+    private readonly string _customAvatarsFolder;
     private readonly string _usersFile;
 
     public UserService()
     {
         _dataFolder = PathHelper.EnsureDirectory("Data");
-        _avatarsFolder = PathHelper.EnsureDirectory(Path.Combine("Assets", "Avatars"));
-        _usersFile = Path.Combine(_dataFolder, "users.json");
-
-        EnsureUsersFileExists();
+        _defaultAvatarsFolder = PathHelper.EnsureDirectory(Path.Combine("Assets", "Avatars", "Default"));
+        _customAvatarsFolder = PathHelper.EnsureDirectory(Path.Combine("Assets", "Avatars", "Custom"));
+        _usersFile = PathHelper.EnsureFileExists(Path.Combine("Data", "users.json"), "[]");
     }
 
     public List<User> GetAllUsers()
@@ -45,7 +45,7 @@ public class UserService : IUserService
         var users = GetAllUsers();
 
         if (users.Any(u => u.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException("Există deja un utilizator cu acest nume.");
+            throw new InvalidOperationException("A user with this name already exists.");
 
         users.Add(user);
         SaveAll(users);
@@ -54,14 +54,19 @@ public class UserService : IUserService
     public void DeleteUser(string username)
     {
         var users = GetAllUsers();
+
         var userToRemove = users.FirstOrDefault(u =>
             u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
 
-        if (userToRemove != null)
-        {
-            users.Remove(userToRemove);
-            SaveAll(users);
-        }
+        if (userToRemove == null)
+            return;
+
+        string avatarPathToCheck = userToRemove.AvatarPath;
+
+        users.Remove(userToRemove);
+        SaveAll(users);
+
+        DeleteAvatarIfUnused(avatarPathToCheck, users);
     }
 
     public bool UserExists(string username)
@@ -72,12 +77,31 @@ public class UserService : IUserService
 
     public List<string> GetPredefinedAvatars()
     {
-        if (!Directory.Exists(_avatarsFolder))
+        return GetAvatarsFromFolder(_defaultAvatarsFolder);
+    }
+
+    public List<string> GetCustomAvatars()
+    {
+        return GetAvatarsFromFolder(_customAvatarsFolder);
+    }
+
+    public List<string> GetAllAvailableAvatars()
+    {
+        return GetPredefinedAvatars()
+            .Concat(GetCustomAvatars())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(path => path)
+            .ToList();
+    }
+
+    private List<string> GetAvatarsFromFolder(string folderPath)
+    {
+        if (!Directory.Exists(folderPath))
             return new List<string>();
 
         var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".gif" };
 
-        return Directory.GetFiles(_avatarsFolder)
+        return Directory.GetFiles(folderPath)
             .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLower()))
             .Select(PathHelper.ToRelativePath)
             .OrderBy(path => path)
@@ -95,11 +119,37 @@ public class UserService : IUserService
         File.WriteAllText(_usersFile, json);
     }
 
-    private void EnsureUsersFileExists()
+    private void DeleteAvatarIfUnused(string avatarRelativePath, List<User> remainingUsers)
     {
-        if (!File.Exists(_usersFile))
+        if (string.IsNullOrWhiteSpace(avatarRelativePath))
+            return;
+
+        bool avatarStillUsed = remainingUsers.Any(u =>
+            u.AvatarPath.Equals(avatarRelativePath, StringComparison.OrdinalIgnoreCase));
+
+        if (avatarStillUsed)
+            return;
+
+        string fullAvatarPath = PathHelper.ToAbsolutePath(avatarRelativePath);
+        string normalizedAvatarPath = Path.GetFullPath(fullAvatarPath);
+        string fullCustomAvatarsFolder = Path.GetFullPath(_customAvatarsFolder);
+
+        bool isInsideCustomFolder = normalizedAvatarPath.StartsWith(
+            fullCustomAvatarsFolder,
+            StringComparison.OrdinalIgnoreCase);
+
+        if (!isInsideCustomFolder)
+            return;
+
+        if (!File.Exists(normalizedAvatarPath))
+            return;
+
+        try
         {
-            File.WriteAllText(_usersFile, "[]");
+            File.Delete(normalizedAvatarPath);
+        }
+        catch
+        {
         }
     }
 }

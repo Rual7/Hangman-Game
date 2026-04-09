@@ -1,4 +1,5 @@
 ﻿using Hangman_Game.Models;
+using Hangman_Game.Services;
 using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels.Base;
 using System.Collections.ObjectModel;
@@ -38,6 +39,7 @@ public class StartVM : BaseVM
     private RelayCommand? PlayCommandAsRelay => PlayCommand as RelayCommand;
 
     public event Action? NewProfileRequested;
+    public event Action? DeleteUserRequested;
     public event Action<User>? PlayRequested;
     public event Action? ExitRequested;
 
@@ -46,7 +48,7 @@ public class StartVM : BaseVM
         _userService = userService;
 
         NewProfileCommand = new RelayCommand(_ => NewProfileRequested?.Invoke());
-        DeleteUserCommand = new RelayCommand(_ => DeleteSelectedUser(), _ => SelectedUser != null);
+        DeleteUserCommand = new RelayCommand(_ => DeleteUserRequested?.Invoke(), _ => SelectedUser != null);
         PlayCommand = new RelayCommand(_ => StartGame(), _ => SelectedUser != null);
         ExitCommand = new RelayCommand(_ => ExitRequested?.Invoke());
 
@@ -58,7 +60,9 @@ public class StartVM : BaseVM
         Users.Clear();
 
         foreach (var user in _userService.GetAllUsers())
+        {
             Users.Add(user);
+        }
 
         SelectedUser = null;
     }
@@ -78,18 +82,28 @@ public class StartVM : BaseVM
         }
     }
 
-    private void DeleteSelectedUser()
+    public void DeleteSelectedUser()
     {
         if (SelectedUser == null)
             return;
 
-        _userService.DeleteUser(SelectedUser.Username);
+        string username = SelectedUser.Username;
+
+        var saveGameService = new SaveGameService();
+        var statisticsService = new StatisticsService();
+
+        saveGameService.DeleteAllSaves(username);
+        statisticsService.DeleteUserStatistics(username);
+        _userService.DeleteUser(username);
+
         LoadUsers();
     }
 
     private void StartGame()
     {
         if (SelectedUser != null)
+        {
             PlayRequested?.Invoke(SelectedUser);
+        }
     }
 }

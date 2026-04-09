@@ -8,5 +8,8 @@ public interface IUserService
     void AddUser(User user);
     void DeleteUser(string username);
     bool UserExists(string username);
+
     List<string> GetPredefinedAvatars();
+    List<string> GetCustomAvatars();
+    List<string> GetAllAvailableAvatars();
 }

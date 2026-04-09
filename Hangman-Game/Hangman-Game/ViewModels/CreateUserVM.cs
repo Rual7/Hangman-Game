@@ -44,7 +44,6 @@ public class CreateUserVM : BaseVM
     }
 
     public string SelectedAvatarPath => SelectedAvatar?.RelativePath ?? string.Empty;
-
     public string SelectedAvatarFullPath => SelectedAvatar?.FullPath ?? string.Empty;
 
     public string ErrorMessage
@@ -66,14 +65,21 @@ public class CreateUserVM : BaseVM
     {
         _userService = userService;
 
-        foreach (var avatar in _userService.GetPredefinedAvatars())
-        {
-            AvailableAvatars.Add(new AvatarItem(avatar));
-        }
+        LoadAvailableAvatars();
 
         BrowseAvatarCommand = new RelayCommand(_ => BrowseAvatar());
         CreateProfileCommand = new RelayCommand(_ => CreateProfile(), _ => CanCreateProfile());
         CancelCommand = new RelayCommand(_ => CancelRequested?.Invoke());
+    }
+
+    private void LoadAvailableAvatars()
+    {
+        AvailableAvatars.Clear();
+
+        foreach (var avatar in _userService.GetAllAvailableAvatars())
+        {
+            AvailableAvatars.Add(new AvatarItem(avatar));
+        }
     }
 
     private bool CanCreateProfile()
@@ -96,7 +102,12 @@ public class CreateUserVM : BaseVM
 
         try
         {
-            string avatarsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Avatars");
+            string avatarsFolder = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Assets",
+                "Avatars",
+                "Custom");
+
             Directory.CreateDirectory(avatarsFolder);
 
             string sourcePath = Path.GetFullPath(dialog.FileName);
@@ -107,12 +118,9 @@ public class CreateUserVM : BaseVM
 
             bool sameFile = string.Equals(sourcePath, destinationPath, StringComparison.OrdinalIgnoreCase);
 
-            if (!sameFile)
+            if (!sameFile && !File.Exists(destinationPath))
             {
-                if (!File.Exists(destinationPath))
-                {
-                    File.Copy(sourcePath, destinationPath);
-                }
+                File.Copy(sourcePath, destinationPath);
             }
 
             var existingAvatar = AvailableAvatars

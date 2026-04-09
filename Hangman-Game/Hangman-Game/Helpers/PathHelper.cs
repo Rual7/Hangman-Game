@@ -18,6 +18,24 @@ public class PathHelper
         return fullPath;
     }
 
+    public static string EnsureFileExists(string relativePath, string defaultContent = "")
+    {
+        string fullPath = Path.Combine(GetProjectRoot(), relativePath);
+
+        string? directory = Path.GetDirectoryName(fullPath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            File.WriteAllText(fullPath, defaultContent);
+        }
+
+        return fullPath;
+    }
+
     public static string ToRelativePath(string fullPath)
     {
         string basePath = GetProjectRoot();
