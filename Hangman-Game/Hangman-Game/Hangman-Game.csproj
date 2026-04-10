@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\gameIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +31,7 @@
     <None Remove="Assets\Gallows\stage4.png" />
     <None Remove="Assets\Gallows\stage5.png" />
     <None Remove="Assets\Gallows\stage6.png" />
+    <None Remove="Assets\gameIcon.ico" />
     <None Remove="Assets\timerFrame.png" />
     <None Remove="Data\words.xml" />
   </ItemGroup>
@@ -89,12 +91,19 @@
     <Content Include="Assets\Gallows\stage6.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\gameIcon.ico" />
     <Content Include="Assets\timerFrame.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Data\words.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\gameIcon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
