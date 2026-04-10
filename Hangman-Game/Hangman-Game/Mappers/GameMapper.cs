@@ -2,46 +2,43 @@
 
 namespace Hangman_Game.Mappers;
 
-public class GameMapper
+public static class GameMapper
 {
-    public static SavedGame ToSavedGame(GameSession session, string saveName)
+    #region Public Mapping Methods
+
+    public static SavedGame ToSavedGame(GameSession gameSession, string saveName)
     {
         return new SavedGame
         {
             SaveName = saveName,
-            Username = session.Username,
-            Category = session.Category,
-            WordToGuess = session.WordToGuess,
-
-            GuessedLetters = session.GuessedLetters.ToList(),
-            WrongLetters = session.WrongLetters.ToList(),
-
-            WrongGuessesCount = session.WrongGuessesCount,
-            CurrentLevel = session.CurrentLevel,
-            ConsecutiveWins = session.ConsecutiveWins,
-
-            RemainingSeconds = session.RemainingSeconds,
-
-            SavedAt = System.DateTime.Now
+            Username = gameSession.Username,
+            Category = gameSession.Category,
+            WordToGuess = gameSession.WordToGuess,
+            GuessedLetters = gameSession.GuessedLetters.ToList(),
+            WrongLetters = gameSession.WrongLetters.ToList(),
+            WrongGuessesCount = gameSession.WrongGuessesCount,
+            CurrentLevel = gameSession.CurrentLevel,
+            ConsecutiveWins = gameSession.ConsecutiveWins,
+            RemainingSeconds = gameSession.RemainingSeconds,
+            SavedAt = DateTime.Now
         };
     }
 
-    public static GameSession ToGameSession(SavedGame saved)
+    public static GameSession ToGameSession(SavedGame savedGame)
     {
         return new GameSession
         {
-            Username = saved.Username,
-            Category = saved.Category,
-            WordToGuess = saved.WordToGuess,
-
-            GuessedLetters = new HashSet<char>(saved.GuessedLetters),
-            WrongLetters = new HashSet<char>(saved.WrongLetters),
-
-            WrongGuessesCount = saved.WrongGuessesCount,
-            CurrentLevel = saved.CurrentLevel,
-            ConsecutiveWins = saved.ConsecutiveWins,
-
-            RemainingSeconds = saved.RemainingSeconds
+            Username = savedGame.Username,
+            Category = savedGame.Category,
+            WordToGuess = savedGame.WordToGuess,
+            GuessedLetters = new HashSet<char>(savedGame.GuessedLetters),
+            WrongLetters = new HashSet<char>(savedGame.WrongLetters),
+            WrongGuessesCount = savedGame.WrongGuessesCount,
+            CurrentLevel = savedGame.CurrentLevel,
+            ConsecutiveWins = savedGame.ConsecutiveWins,
+            RemainingSeconds = savedGame.RemainingSeconds
         };
     }
+
+    #endregion
 }

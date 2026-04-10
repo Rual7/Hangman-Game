@@ -166,7 +166,7 @@
                                         <Ellipse Stroke="#D18A2C"
                                                  StrokeThickness="1">
                                             <Ellipse.Fill>
-                                                <ImageBrush ImageSource="{Binding AvatarFullPath}"
+                                                <ImageBrush ImageSource="{Binding AvatarImage}"
                                                             Stretch="UniformToFill"/>
                                             </Ellipse.Fill>
                                         </Ellipse>
@@ -219,7 +219,7 @@
                                            RadiusX="18"
                                            RadiusY="18">
                                     <Rectangle.Fill>
-                                        <ImageBrush ImageSource="{Binding SelectedUser.AvatarFullPath}"
+                                        <ImageBrush ImageSource="{Binding SelectedUser.AvatarImage}"
                                                     Stretch="UniformToFill"/>
                                     </Rectangle.Fill>
                                 </Rectangle>

@@ -8,25 +8,39 @@ namespace Hangman_Game.Services;
 
 public class StatisticsService : IStatisticsService
 {
-    private readonly string _statisticsFile;
+    #region Fields
+
+    private readonly string _statisticsFilePath;
+
+    #endregion
+
+    #region Constructors
 
     public StatisticsService()
     {
-        string dataFolder = PathHelper.EnsureDirectory("Data");
-        _statisticsFile = Path.Combine(dataFolder, "statistics.json");
+        string dataFolderPath = PathHelper.EnsureDirectory("Data");
+        _statisticsFilePath = Path.Combine(dataFolderPath, "statistics.json");
 
         EnsureStatisticsFileExists();
     }
 
+    #endregion
+
+    #region Public Statistics Retrieval Methods
+
     public List<UserCategoryStatistic> GetAllStatistics()
     {
-        if (!File.Exists(_statisticsFile))
+        if (!File.Exists(_statisticsFilePath))
+        {
             return new List<UserCategoryStatistic>();
+        }
 
-        string json = File.ReadAllText(_statisticsFile);
+        string json = File.ReadAllText(_statisticsFilePath);
 
         if (string.IsNullOrWhiteSpace(json))
+        {
             return new List<UserCategoryStatistic>();
+        }
 
         try
         {
@@ -39,20 +53,26 @@ public class StatisticsService : IStatisticsService
         }
     }
 
+    #endregion
+
+    #region Public Statistics Management Methods
+
     public void RegisterGamePlayed(string username, string category, bool won)
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(category))
-            return;
-
-        var statistics = GetAllStatistics();
-
-        var existingEntry = statistics.FirstOrDefault(s =>
-            s.Username.Equals(username, StringComparison.OrdinalIgnoreCase) &&
-            s.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
-
-        if (existingEntry == null)
         {
-            existingEntry = new UserCategoryStatistic
+            return;
+        }
+
+        List<UserCategoryStatistic> statistics = GetAllStatistics();
+
+        UserCategoryStatistic? existingStatistic = statistics.FirstOrDefault(statistic =>
+            statistic.Username.Equals(username, StringComparison.OrdinalIgnoreCase) &&
+            statistic.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+
+        if (existingStatistic == null)
+        {
+            existingStatistic = new UserCategoryStatistic
             {
                 Username = username.Trim(),
                 Category = category.Trim(),
@@ -60,44 +80,56 @@ public class StatisticsService : IStatisticsService
                 GamesWon = 0
             };
 
-            statistics.Add(existingEntry);
+            statistics.Add(existingStatistic);
         }
 
-        existingEntry.GamesPlayed++;
+        existingStatistic.GamesPlayed++;
 
         if (won)
-            existingEntry.GamesWon++;
+        {
+            existingStatistic.GamesWon++;
+        }
 
         SaveAll(statistics);
     }
 
     public void DeleteUserStatistics(string username)
     {
-        var statistics = GetAllStatistics();
+        List<UserCategoryStatistic> statistics = GetAllStatistics();
 
         statistics = statistics
-            .Where(s => !s.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
+            .Where(statistic => !statistic.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         SaveAll(statistics);
     }
 
+    #endregion
+
+    #region Private Persistence Methods
+
     private void SaveAll(List<UserCategoryStatistic> statistics)
     {
-        var options = new JsonSerializerOptions
+        JsonSerializerOptions serializerOptions = new()
         {
             WriteIndented = true
         };
 
-        string json = JsonSerializer.Serialize(statistics, options);
-        File.WriteAllText(_statisticsFile, json);
+        string json = JsonSerializer.Serialize(statistics, serializerOptions);
+        File.WriteAllText(_statisticsFilePath, json);
     }
+
+    #endregion
+
+    #region Private Initialization Methods
 
     private void EnsureStatisticsFileExists()
     {
-        if (!File.Exists(_statisticsFile))
+        if (!File.Exists(_statisticsFilePath))
         {
-            File.WriteAllText(_statisticsFile, "[]");
+            File.WriteAllText(_statisticsFilePath, "[]");
         }
     }
+
+    #endregion
 }

@@ -8,22 +8,32 @@ namespace Hangman_Game.Services;
 
 public class GameService : IGameService
 {
+    #region Fields
+
     private readonly string _wordsFilePath;
     private readonly Random _random = new();
+
+    #endregion
+
+    #region Constructors
 
     public GameService()
     {
         _wordsFilePath = PathHelper.ToAbsolutePath(Path.Combine("Data", "words.xml"));
     }
 
+    #endregion
+
+    #region Public Game Setup Methods
+
     public List<string> GetCategories()
     {
-        var doc = XDocument.Load(_wordsFilePath);
+        XDocument wordsDocument = LoadWordsDocument();
 
-        var categories = doc.Root!
+        List<string> categories = wordsDocument.Root!
             .Elements("Category")
-            .Select(c => c.Attribute("name")?.Value)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(categoryElement => categoryElement.Attribute("name")?.Value)
+            .Where(categoryName => !string.IsNullOrWhiteSpace(categoryName))
             .Cast<string>()
             .ToList();
 
@@ -34,51 +44,79 @@ public class GameService : IGameService
 
     public GameSession StartNewGame(string username, string category)
     {
-        var normalizedCategory = NormalizeCategory(category);
-        var wordEntry = GetRandomWordEntry(normalizedCategory);
+        string normalizedCategory = NormalizeCategory(category);
+        (string Word, string Category) wordEntry = GetRandomWordEntry(normalizedCategory);
 
         return new GameSession
         {
             Username = username,
             Category = wordEntry.Category,
             WordToGuess = wordEntry.Word,
-
             GuessedLetters = new HashSet<char>(),
             WrongLetters = new HashSet<char>(),
-
             WrongGuessesCount = 0,
             MaxWrongGuesses = 6,
-
             CurrentLevel = 1,
             ConsecutiveWins = 0,
-
             RemainingSeconds = 300
         };
     }
 
+    public void ResetProgress(GameSession session, string category)
+    {
+        if (session == null)
+        {
+            throw new ArgumentNullException(nameof(session));
+        }
+
+        string normalizedCategory = NormalizeCategory(category);
+        (string Word, string Category) wordEntry = GetRandomWordEntry(normalizedCategory);
+
+        session.Category = wordEntry.Category;
+        session.WordToGuess = wordEntry.Word;
+        session.GuessedLetters.Clear();
+        session.WrongLetters.Clear();
+        session.WrongGuessesCount = 0;
+        session.CurrentLevel = 1;
+        session.ConsecutiveWins = 0;
+        session.RemainingSeconds = 300;
+    }
+
+    #endregion
+
+    #region Public Gameplay Methods
+
     public bool GuessLetter(GameSession session, char letter)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         if (string.IsNullOrWhiteSpace(session.WordToGuess))
-            throw new InvalidOperationException("There is no active word in the current session.");
-
-        letter = char.ToLower(letter);
-
-        if (!char.IsLetter(letter))
-            return false;
-
-        if (session.GuessedLetters.Contains(letter) || session.WrongLetters.Contains(letter))
-            return false;
-
-        if (session.WordToGuess.Contains(letter))
         {
-            session.GuessedLetters.Add(letter);
+            throw new InvalidOperationException("There is no active word in the current session.");
+        }
+
+        char normalizedLetter = char.ToLower(letter);
+
+        if (!char.IsLetter(normalizedLetter))
+        {
+            return false;
+        }
+
+        if (session.GuessedLetters.Contains(normalizedLetter) || session.WrongLetters.Contains(normalizedLetter))
+        {
+            return false;
+        }
+
+        if (session.WordToGuess.Contains(normalizedLetter))
+        {
+            session.GuessedLetters.Add(normalizedLetter);
             return true;
         }
 
-        session.WrongLetters.Add(letter);
+        session.WrongLetters.Add(normalizedLetter);
         session.WrongGuessesCount++;
 
         return false;
@@ -87,31 +125,46 @@ public class GameService : IGameService
     public string GetMaskedWord(GameSession session)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         if (string.IsNullOrWhiteSpace(session.WordToGuess))
+        {
             return string.Empty;
+        }
 
         return string.Join(" ",
-            session.WordToGuess.Select(c =>
-                session.GuessedLetters.Contains(char.ToLower(c)) ? c : '_'));
+            session.WordToGuess.Select(character =>
+                session.GuessedLetters.Contains(char.ToLower(character)) ? character : '_'));
     }
+
+    #endregion
+
+    #region Public Progress Evaluation Methods
 
     public bool IsLevelWon(GameSession session)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         if (string.IsNullOrWhiteSpace(session.WordToGuess))
+        {
             return false;
+        }
 
-        return session.WordToGuess.All(c => session.GuessedLetters.Contains(char.ToLower(c)));
+        return session.WordToGuess.All(character =>
+            session.GuessedLetters.Contains(char.ToLower(character)));
     }
 
     public bool IsLevelLost(GameSession session)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         return session.WrongGuessesCount >= session.MaxWrongGuesses
                || session.RemainingSeconds <= 0;
@@ -120,7 +173,9 @@ public class GameService : IGameService
     public bool IsGameWon(GameSession session)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         return session.ConsecutiveWins >= 3;
     }
@@ -128,10 +183,14 @@ public class GameService : IGameService
     public void StartNextLevel(GameSession session)
     {
         if (session == null)
+        {
             throw new ArgumentNullException(nameof(session));
+        }
 
         if (!IsLevelWon(session))
+        {
             throw new InvalidOperationException("You cannot proceed to the next level before winning the current level.");
+        }
 
         session.ConsecutiveWins++;
 
@@ -143,84 +202,88 @@ public class GameService : IGameService
 
         session.CurrentLevel = session.ConsecutiveWins + 1;
 
-        var wordEntry = GetRandomWordEntry(session.Category);
+        (string Word, string Category) wordEntry = GetRandomWordEntry(session.Category);
+
         session.Category = wordEntry.Category;
         session.WordToGuess = wordEntry.Word;
-
         session.GuessedLetters.Clear();
         session.WrongLetters.Clear();
         session.WrongGuessesCount = 0;
         session.RemainingSeconds = 300;
     }
 
-    public void ResetProgress(GameSession session, string category)
+    #endregion
+
+    #region Private Word Loading Methods
+
+    private XDocument LoadWordsDocument()
     {
-        if (session == null)
-            throw new ArgumentNullException(nameof(session));
-
-        var normalizedCategory = NormalizeCategory(category);
-        var wordEntry = GetRandomWordEntry(normalizedCategory);
-
-        session.Category = wordEntry.Category;
-        session.WordToGuess = wordEntry.Word;
-
-        session.GuessedLetters.Clear();
-        session.WrongLetters.Clear();
-        session.WrongGuessesCount = 0;
-
-        session.CurrentLevel = 1;
-        session.ConsecutiveWins = 0;
-
-        session.RemainingSeconds = 300;
+        return XDocument.Load(_wordsFilePath);
     }
 
     private (string Word, string Category) GetRandomWordEntry(string category)
     {
-        var doc = XDocument.Load(_wordsFilePath);
-        var categories = doc.Root!.Elements("Category").ToList();
+        XDocument wordsDocument = LoadWordsDocument();
+        List<XElement> categories = wordsDocument.Root!.Elements("Category").ToList();
 
         if (category.Equals("All categories", StringComparison.OrdinalIgnoreCase))
         {
             var allWords = categories
-                .SelectMany(c => c.Elements("Word")
-                    .Select(w => new
+                .SelectMany(categoryElement => categoryElement.Elements("Word")
+                    .Select(wordElement => new
                     {
-                        Category = c.Attribute("name")?.Value?.Trim() ?? "Unknown",
-                        Word = w.Value.Trim().ToLower()
+                        Category = categoryElement.Attribute("name")?.Value?.Trim() ?? "Unknown",
+                        Word = wordElement.Value.Trim().ToLower()
                     }))
-                .Where(x => !string.IsNullOrWhiteSpace(x.Word))
+                .Where(wordEntry => !string.IsNullOrWhiteSpace(wordEntry.Word))
                 .ToList();
 
             if (allWords.Count == 0)
+            {
                 throw new InvalidOperationException("There are no words available in words.xml.");
+            }
 
-            var chosen = allWords[_random.Next(allWords.Count)];
-            return (chosen.Word, chosen.Category);
+            var chosenWord = allWords[_random.Next(allWords.Count)];
+            return (chosenWord.Word, chosenWord.Category);
         }
 
-        var selectedCategory = categories.FirstOrDefault(c =>
-            string.Equals(c.Attribute("name")?.Value, category, StringComparison.OrdinalIgnoreCase));
+        XElement? selectedCategory = categories.FirstOrDefault(categoryElement =>
+            string.Equals(categoryElement.Attribute("name")?.Value, category, StringComparison.OrdinalIgnoreCase));
 
         if (selectedCategory == null)
+        {
             throw new InvalidOperationException($"Category '{category}' does not exist.");
+        }
 
-        var words = selectedCategory
+        List<string> words = selectedCategory
             .Elements("Word")
-            .Select(w => w.Value.Trim().ToLower())
-            .Where(w => !string.IsNullOrWhiteSpace(w))
+            .Select(wordElement => wordElement.Value.Trim().ToLower())
+            .Where(word => !string.IsNullOrWhiteSpace(word))
             .ToList();
 
         if (words.Count == 0)
+        {
             throw new InvalidOperationException($"Category '{category}' does not contain any words.");
+        }
 
-        return (words[_random.Next(words.Count)], selectedCategory.Attribute("name")?.Value?.Trim() ?? category);
+        return (
+            words[_random.Next(words.Count)],
+            selectedCategory.Attribute("name")?.Value?.Trim() ?? category);
     }
+
+    #endregion
+
+    #region Private Helper Methods
 
     private string NormalizeCategory(string category)
     {
         if (string.IsNullOrWhiteSpace(category))
+        {
             return "All categories";
+        }
 
         return category.Trim();
     }
+
+    #endregion
 }

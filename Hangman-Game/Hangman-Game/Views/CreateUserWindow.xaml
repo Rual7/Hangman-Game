@@ -140,7 +140,7 @@
                                            Stroke="#5B3636"
                                            StrokeThickness="2">
                                     <Rectangle.Fill>
-                                        <ImageBrush ImageSource="{Binding FullPath}"
+                                        <ImageBrush ImageSource="{Binding AvatarImage}"
                                                     Stretch="UniformToFill"/>
                                     </Rectangle.Fill>
                                 </Rectangle>

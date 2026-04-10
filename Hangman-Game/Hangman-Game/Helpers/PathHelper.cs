@@ -2,8 +2,10 @@
 
 namespace Hangman_Game.Helpers;
 
-public class PathHelper
+public static class PathHelper
 {
+    #region Public Path Utilities
+
     public static string GetProjectRoot()
     {
         return AppDomain.CurrentDomain.BaseDirectory;
@@ -12,8 +14,11 @@ public class PathHelper
     public static string EnsureDirectory(string relativeFolder)
     {
         string fullPath = Path.Combine(GetProjectRoot(), relativeFolder);
+
         if (!Directory.Exists(fullPath))
+        {
             Directory.CreateDirectory(fullPath);
+        }
 
         return fullPath;
     }
@@ -21,11 +26,11 @@ public class PathHelper
     public static string EnsureFileExists(string relativePath, string defaultContent = "")
     {
         string fullPath = Path.Combine(GetProjectRoot(), relativePath);
+        string? directoryPath = Path.GetDirectoryName(fullPath);
 
-        string? directory = Path.GetDirectoryName(fullPath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        if (!string.IsNullOrWhiteSpace(directoryPath) && !Directory.Exists(directoryPath))
         {
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(directoryPath);
         }
 
         if (!File.Exists(fullPath))
@@ -40,11 +45,11 @@ public class PathHelper
     {
         string basePath = GetProjectRoot();
 
-        Uri baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-        Uri fullUri = new Uri(fullPath);
+        Uri baseUri = new(AppendDirectorySeparatorChar(basePath));
+        Uri fullUri = new(fullPath);
 
-        string relative = Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString());
-        return relative.Replace('/', Path.DirectorySeparatorChar);
+        string relativePath = Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString());
+        return relativePath.Replace('/', Path.DirectorySeparatorChar);
     }
 
     public static string ToAbsolutePath(string relativePath)
@@ -52,10 +57,19 @@ public class PathHelper
         return Path.Combine(GetProjectRoot(), relativePath);
     }
 
+    #endregion
+
+    #region Private Helpers
+
     private static string AppendDirectorySeparatorChar(string path)
     {
-        if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+        if (!path.EndsWith(Path.DirectorySeparatorChar))
+        {
             return path + Path.DirectorySeparatorChar;
+        }
+
         return path;
     }
+
+    #endregion
 }
