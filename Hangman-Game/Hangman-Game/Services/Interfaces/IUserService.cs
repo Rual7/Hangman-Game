@@ -25,4 +25,10 @@ public interface IUserService
     List<string> GetAllAvailableAvatars();
 
     #endregion
+
+    #region User Progress
+
+    void UpdateUserProgress(User user);
+
+    #endregion
 }

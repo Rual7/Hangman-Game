@@ -1,5 +1,4 @@
 ﻿using Hangman_Game.Models;
-using Hangman_Game.Services;
 using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels.Base;
 using System.Collections.ObjectModel;
@@ -12,6 +11,8 @@ public class StartVM : BaseVM
     #region Fields
 
     private readonly IUserService _userService;
+    private readonly ISaveGameService _saveGameService;
+    private readonly IStatisticsService _statisticsService;
     private User? _selectedUser;
 
     #endregion
@@ -72,9 +73,14 @@ public class StartVM : BaseVM
 
     #region Constructors
 
-    public StartVM(IUserService userService)
+    public StartVM(
+        IUserService userService,
+        ISaveGameService saveGameService,
+        IStatisticsService statisticsService)
     {
         _userService = userService;
+        _saveGameService = saveGameService;
+        _statisticsService = statisticsService;
 
         NewProfileCommand = new RelayCommand(_ => NewProfileRequested?.Invoke());
         DeleteUserCommand = new RelayCommand(_ => DeleteUserRequested?.Invoke(), _ => SelectedUser != null);
@@ -123,11 +129,8 @@ public class StartVM : BaseVM
 
         string username = SelectedUser.Username;
 
-        ISaveGameService saveGameService = new SaveGameService();
-        IStatisticsService statisticsService = new StatisticsService();
-
-        saveGameService.DeleteAllSaves(username);
-        statisticsService.DeleteUserStatistics(username);
+        _saveGameService.DeleteAllSaves(username);
+        _statisticsService.DeleteUserStatistics(username);
         _userService.DeleteUser(username);
 
         LoadUsers();

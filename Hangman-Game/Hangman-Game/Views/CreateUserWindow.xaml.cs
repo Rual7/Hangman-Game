@@ -1,5 +1,5 @@
 ﻿using Hangman_Game.Models;
-using Hangman_Game.Services;
+using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
 using System.Windows;
 
@@ -15,11 +15,11 @@ public partial class CreateUserWindow : Window
 
     #region Constructors
 
-    public CreateUserWindow()
+    public CreateUserWindow(IUserService userService)
     {
         InitializeComponent();
 
-        _viewModel = new CreateUserVM(new UserService());
+        _viewModel = new CreateUserVM(userService);
         DataContext = _viewModel;
 
         _viewModel.ProfileCreated += OnProfileCreated;

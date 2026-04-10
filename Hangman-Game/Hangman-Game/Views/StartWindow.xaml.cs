@@ -1,5 +1,5 @@
 ﻿using Hangman_Game.Models;
-using Hangman_Game.Services;
+using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
 using System.Windows;
 
@@ -10,16 +10,35 @@ public partial class StartWindow : Window
     #region Fields
 
     private readonly StartVM _viewModel;
+    private readonly IUserService _userService;
+    private readonly ISaveGameService _saveGameService;
+    private readonly IStatisticsService _statisticsService;
+    private readonly IGameService _gameService;
+
+    #endregion
+
+    #region Public Properties
+
+    public IStatisticsService StatisticsService => _statisticsService;
 
     #endregion
 
     #region Constructors
 
-    public StartWindow()
+    public StartWindow(
+        IUserService userService,
+        ISaveGameService saveGameService,
+        IStatisticsService statisticsService,
+        IGameService gameService)
     {
         InitializeComponent();
 
-        _viewModel = new StartVM(new UserService());
+        _userService = userService;
+        _saveGameService = saveGameService;
+        _statisticsService = statisticsService;
+        _gameService = gameService;
+
+        _viewModel = new StartVM(_userService, _saveGameService, _statisticsService);
         DataContext = _viewModel;
 
         _viewModel.NewProfileRequested += OnNewProfileRequested;
@@ -34,7 +53,7 @@ public partial class StartWindow : Window
 
     private void OnNewProfileRequested()
     {
-        CreateUserWindow createUserWindow = new()
+        CreateUserWindow createUserWindow = new(_userService)
         {
             Owner = this
         };
@@ -65,7 +84,12 @@ public partial class StartWindow : Window
 
     private void OnPlayRequested(User user)
     {
-        GameWindow gameWindow = new(user)
+        GameWindow gameWindow = new(
+            user,
+            _gameService,
+            _saveGameService,
+            _statisticsService,
+            _userService)
         {
             Owner = this
         };

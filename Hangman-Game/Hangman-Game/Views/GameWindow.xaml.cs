@@ -1,5 +1,4 @@
 ﻿using Hangman_Game.Models;
-using Hangman_Game.Services;
 using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
 using System.ComponentModel;
@@ -17,15 +16,22 @@ public partial class GameWindow : Window
 
     #region Constructors
 
-    public GameWindow(User user)
+    public GameWindow(
+        User user,
+        IGameService gameService,
+        ISaveGameService saveGameService,
+        IStatisticsService statisticsService,
+        IUserService userService)
     {
         InitializeComponent();
 
-        IGameService gameService = new GameService();
-        ISaveGameService saveGameService = new SaveGameService();
-        IStatisticsService statisticsService = new StatisticsService();
+        _viewModel = new GameVM(
+            user,
+            gameService,
+            saveGameService,
+            statisticsService,
+            userService);
 
-        _viewModel = new GameVM(user, gameService, saveGameService, statisticsService);
         DataContext = _viewModel;
 
         SubscribeToViewModelEvents();
@@ -56,12 +62,16 @@ public partial class GameWindow : Window
 
     private void OnStatisticsRequested()
     {
-        StatisticsWindow statisticsWindow = new()
+        if (Owner is StartWindow startWindow)
         {
-            Owner = this
-        };
+            StatisticsWindow statisticsWindow = new(
+                GetStatisticsService(startWindow))
+            {
+                Owner = this
+            };
 
-        statisticsWindow.ShowDialog();
+            statisticsWindow.ShowDialog();
+        }
     }
 
     private void OnAboutRequested()
@@ -117,6 +127,15 @@ public partial class GameWindow : Window
         {
             e.Cancel = true;
         }
+    }
+
+    #endregion
+
+    #region Private Helper Methods
+
+    private static IStatisticsService GetStatisticsService(StartWindow startWindow)
+    {
+        return startWindow.StatisticsService;
     }
 
     #endregion

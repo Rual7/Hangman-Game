@@ -119,6 +119,35 @@ public class UserService : IUserService
 
     #endregion
 
+    #region Public User Progress Methods
+
+    public void UpdateUserProgress(User user)
+    {
+        if (user == null || string.IsNullOrWhiteSpace(user.Username))
+        {
+            return;
+        }
+
+        List<User> users = GetAllUsers();
+
+        User? existingUser = users.FirstOrDefault(existing =>
+            existing.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
+
+        if (existingUser == null)
+        {
+            return;
+        }
+
+        existingUser.Level = user.Level;
+        existingUser.GamesPlayed = user.GamesPlayed;
+        existingUser.GamesWon = user.GamesWon;
+        existingUser.AvatarPath = user.AvatarPath;
+
+        SaveAll(users);
+    }
+
+    #endregion
+
     #region Private Persistence Methods
 
     private void SaveAll(List<User> users)

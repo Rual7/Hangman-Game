@@ -5,7 +5,6 @@ using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels.Base;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -19,6 +18,7 @@ public class GameVM : BaseVM
     private readonly IGameService _gameService;
     private readonly ISaveGameService _saveGameService;
     private readonly IStatisticsService _statisticsService;
+    private readonly IUserService _userService;
     private readonly DispatcherTimer _timer;
 
     private GameSession? _currentSession;
@@ -176,12 +176,14 @@ public class GameVM : BaseVM
         User currentUser,
         IGameService gameService,
         ISaveGameService saveGameService,
-        IStatisticsService statisticsService)
+        IStatisticsService statisticsService,
+        IUserService userService)
     {
         CurrentUser = currentUser;
         _gameService = gameService;
         _saveGameService = saveGameService;
         _statisticsService = statisticsService;
+        _userService = userService;
         _gameAlreadyCounted = false;
 
         foreach (string category in _gameService.GetCategories())
@@ -608,48 +610,8 @@ public class GameVM : BaseVM
             CurrentUser.Level++;
         }
 
-        SaveCurrentUserToFile();
+        _userService.UpdateUserProgress(CurrentUser);
         OnPropertyChanged(nameof(UserLevelDisplay));
-    }
-
-    private void SaveCurrentUserToFile()
-    {
-        string usersFilePath = PathHelper.EnsureFileExists(Path.Combine("Data", "users.json"), "[]");
-
-        List<User> users;
-
-        try
-        {
-            string json = File.ReadAllText(usersFilePath);
-            users = string.IsNullOrWhiteSpace(json)
-                ? new List<User>()
-                : JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-        }
-        catch
-        {
-            users = new List<User>();
-        }
-
-        User? existingUser = users.FirstOrDefault(user =>
-            user.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase));
-
-        if (existingUser == null)
-        {
-            return;
-        }
-
-        existingUser.Level = CurrentUser.Level;
-        existingUser.GamesPlayed = CurrentUser.GamesPlayed;
-        existingUser.GamesWon = CurrentUser.GamesWon;
-        existingUser.AvatarPath = CurrentUser.AvatarPath;
-
-        JsonSerializerOptions serializerOptions = new()
-        {
-            WriteIndented = true
-        };
-
-        string updatedJson = JsonSerializer.Serialize(users, serializerOptions);
-        File.WriteAllText(usersFilePath, updatedJson);
     }
 
     #endregion

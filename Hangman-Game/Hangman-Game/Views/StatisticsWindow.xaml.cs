@@ -1,4 +1,4 @@
-﻿using Hangman_Game.Services;
+﻿using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
 using System.Windows;
 
@@ -14,11 +14,11 @@ public partial class StatisticsWindow : Window
 
     #region Constructors
 
-    public StatisticsWindow()
+    public StatisticsWindow(IStatisticsService statisticsService)
     {
         InitializeComponent();
 
-        _viewModel = new StatisticsVM(new StatisticsService());
+        _viewModel = new StatisticsVM(statisticsService);
         DataContext = _viewModel;
 
         _viewModel.CloseRequested += OnCloseRequested;
