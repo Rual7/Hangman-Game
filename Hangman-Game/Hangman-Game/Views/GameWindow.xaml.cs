@@ -3,6 +3,8 @@ using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Hangman_Game.Views;
 
@@ -11,6 +13,7 @@ public partial class GameWindow : Window
     #region Fields
 
     private readonly GameVM _viewModel;
+    private readonly IStatisticsService _statisticsService;
 
     #endregion
 
@@ -25,6 +28,8 @@ public partial class GameWindow : Window
     {
         InitializeComponent();
 
+        _statisticsService = statisticsService;
+
         _viewModel = new GameVM(
             user,
             gameService,
@@ -36,6 +41,7 @@ public partial class GameWindow : Window
 
         SubscribeToViewModelEvents();
         Closing += OnWindowClosing;
+        PreviewKeyDown += OnPreviewKeyDown;
     }
 
     #endregion
@@ -62,16 +68,12 @@ public partial class GameWindow : Window
 
     private void OnStatisticsRequested()
     {
-        if (Owner is StartWindow startWindow)
+        StatisticsWindow statisticsWindow = new(_statisticsService)
         {
-            StatisticsWindow statisticsWindow = new(
-                GetStatisticsService(startWindow))
-            {
-                Owner = this
-            };
+            Owner = this
+        };
 
-            statisticsWindow.ShowDialog();
-        }
+        statisticsWindow.ShowDialog();
     }
 
     private void OnAboutRequested()
@@ -129,13 +131,61 @@ public partial class GameWindow : Window
         }
     }
 
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!CanHandleKeyboardGuess(e))
+        {
+            return;
+        }
+
+        char? pressedLetter = TryGetLetterFromKey(e.Key);
+
+        if (pressedLetter == null)
+        {
+            return;
+        }
+
+        char upperLetter = char.ToUpperInvariant(pressedLetter.Value);
+
+        if (_viewModel.GuessLetterCommand.CanExecute(upperLetter))
+        {
+            _viewModel.GuessLetterCommand.Execute(upperLetter);
+            e.Handled = true;
+        }
+    }
+
     #endregion
 
     #region Private Helper Methods
 
-    private static IStatisticsService GetStatisticsService(StartWindow startWindow)
+    private bool CanHandleKeyboardGuess(KeyEventArgs e)
     {
-        return startWindow.StatisticsService;
+        if (Keyboard.Modifiers != ModifierKeys.None)
+        {
+            return false;
+        }
+
+        if (e.Key == Key.System)
+        {
+            return false;
+        }
+
+        if (Keyboard.FocusedElement is MenuItem)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static char? TryGetLetterFromKey(Key key)
+    {
+        if (key >= Key.A && key <= Key.Z)
+        {
+            return (char)('A' + (key - Key.A));
+        }
+
+        return null;
     }
 
     #endregion
