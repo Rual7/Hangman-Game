@@ -7,7 +7,13 @@ namespace Hangman_Game.Views;
 
 public partial class CreateUserWindow : Window
 {
+    #region Fields
+
     private readonly CreateUserVM _viewModel;
+
+    #endregion
+
+    #region Constructors
 
     public CreateUserWindow()
     {
@@ -20,23 +26,26 @@ public partial class CreateUserWindow : Window
         _viewModel.CancelRequested += OnCancelRequested;
     }
 
+    #endregion
+
+    #region Private Event Handlers
+
     private void OnProfileCreated(User user)
     {
         try
         {
-            var startWindow = Owner as StartWindow;
-            if (startWindow?.DataContext is StartVM startVm)
+            if (Owner is StartWindow startWindow && startWindow.DataContext is StartVM startViewModel)
             {
-                startVm.AddUser(user);
+                startViewModel.AddUser(user);
             }
 
             DialogResult = true;
             Close();
         }
-        catch (System.Exception ex)
+        catch (Exception exception)
         {
             MessageBox.Show(
-                ex.Message,
+                exception.Message,
                 "Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -48,4 +57,6 @@ public partial class CreateUserWindow : Window
         DialogResult = false;
         Close();
     }
+
+    #endregion
 }

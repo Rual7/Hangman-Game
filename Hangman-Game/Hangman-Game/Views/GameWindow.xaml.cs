@@ -2,7 +2,6 @@
 using Hangman_Game.Services;
 using Hangman_Game.Services.Interfaces;
 using Hangman_Game.ViewModels;
-using Microsoft.VisualBasic;
 using System.ComponentModel;
 using System.Windows;
 
@@ -10,6 +9,14 @@ namespace Hangman_Game.Views;
 
 public partial class GameWindow : Window
 {
+    #region Fields
+
+    private readonly GameVM _viewModel;
+
+    #endregion
+
+    #region Constructors
+
     public GameWindow(User user)
     {
         InitializeComponent();
@@ -18,72 +25,99 @@ public partial class GameWindow : Window
         ISaveGameService saveGameService = new SaveGameService();
         IStatisticsService statisticsService = new StatisticsService();
 
-        var vm = new GameVM(user, gameService, saveGameService, statisticsService);
+        _viewModel = new GameVM(user, gameService, saveGameService, statisticsService);
+        DataContext = _viewModel;
 
-        vm.CancelRequested += () =>
-        {
-            Close();
-        };
-
-        vm.StatisticsRequested += () =>
-        {
-            var statisticsWindow = new StatisticsWindow
-            {
-                Owner = this
-            };
-
-            statisticsWindow.ShowDialog();
-        };
-
-        vm.AboutRequested += () =>
-        {
-            MessageBox.Show(
-                "Hangman-Game\n\nStudent: Oncioiu Ionut-Raul\nGroup: 10LF243\nEmail: ionut.oncioiu@student.unitbv.ro",
-                "About",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        };
-
-        vm.SaveNameRequested += () =>
-        {
-            string result = Interaction.InputBox(
-                "Enter a name for the save:",
-                "Save Game",
-                "MySave");
-
-            return string.IsNullOrWhiteSpace(result) ? null : result.Trim();
-        };
-
-        vm.ConfirmCloseRequested += () =>
-        {
-            var result = MessageBox.Show(
-                "You have a game in progress. Do you want to save it before exiting?",
-                "Save Game",
-                MessageBoxButton.YesNoCancel,
-                MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Cancel)
-                return false;
-
-            if (result == MessageBoxResult.Yes)
-                vm.Menu.SaveGameCommand.Execute(null);
-
-            return true;
-        };
-
-        DataContext = vm;
-
-        Closing += GameWindow_Closing;
+        SubscribeToViewModelEvents();
+        Closing += OnWindowClosing;
     }
 
-    private void GameWindow_Closing(object? sender, CancelEventArgs e)
+    #endregion
+
+    #region Private Event Subscriptions
+
+    private void SubscribeToViewModelEvents()
     {
-        if (DataContext is GameVM vm)
+        _viewModel.CancelRequested += OnCancelRequested;
+        _viewModel.StatisticsRequested += OnStatisticsRequested;
+        _viewModel.AboutRequested += OnAboutRequested;
+        _viewModel.SaveNameRequested += OnSaveNameRequested;
+        _viewModel.ConfirmCloseRequested += OnConfirmCloseRequested;
+    }
+
+    #endregion
+
+    #region Private Event Handlers
+
+    private void OnCancelRequested()
+    {
+        Close();
+    }
+
+    private void OnStatisticsRequested()
+    {
+        StatisticsWindow statisticsWindow = new()
         {
-            if (!vm.ConfirmWindowClose())
-            {
-                e.Cancel = true;
-            }
+            Owner = this
+        };
+
+        statisticsWindow.ShowDialog();
+    }
+
+    private void OnAboutRequested()
+    {
+        MessageBox.Show(
+            "Hangman-Game\n\nStudent: Oncioiu Ionut-Raul\nGroup: 10LF243\nEmail: ionut.oncioiu@student.unitbv.ro",
+            "About",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+
+    private string? OnSaveNameRequested()
+    {
+        InputDialog inputDialog = new("Enter a name for the save:")
+        {
+            Owner = this
+        };
+
+        bool? result = inputDialog.ShowDialog();
+
+        if (result != true || string.IsNullOrWhiteSpace(inputDialog.InputText))
+        {
+            return null;
+        }
+
+        return inputDialog.InputText.Trim();
+    }
+
+    private bool OnConfirmCloseRequested()
+    {
+        MessageBoxResult result = MessageBox.Show(
+            "You have a game in progress. Do you want to save it before exiting?",
+            "Save Game",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Cancel)
+        {
+            return false;
+        }
+
+        if (result == MessageBoxResult.Yes)
+        {
+            _viewModel.Menu.SaveGameCommand.Execute(null);
+        }
+
+        return true;
+    }
+
+    private void OnWindowClosing(object? sender, CancelEventArgs e)
+    {
+        if (!_viewModel.ConfirmWindowClose())
+        {
+            e.Cancel = true;
         }
     }
+
+    #endregion
 }

@@ -6,7 +6,13 @@ namespace Hangman_Game.Views;
 
 public partial class StatisticsWindow : Window
 {
+    #region Fields
+
     private readonly StatisticsVM _viewModel;
+
+    #endregion
+
+    #region Constructors
 
     public StatisticsWindow()
     {
@@ -15,6 +21,17 @@ public partial class StatisticsWindow : Window
         _viewModel = new StatisticsVM(new StatisticsService());
         DataContext = _viewModel;
 
-        _viewModel.CloseRequested += () => Close();
+        _viewModel.CloseRequested += OnCloseRequested;
     }
+
+    #endregion
+
+    #region Private Event Handlers
+
+    private void OnCloseRequested()
+    {
+        Close();
+    }
+
+    #endregion
 }

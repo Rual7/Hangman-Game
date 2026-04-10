@@ -11,13 +11,23 @@ namespace Hangman_Game.ViewModels;
 
 public class CreateUserVM : BaseVM
 {
+    #region Fields
+
     private readonly IUserService _userService;
 
     private string _username = string.Empty;
     private AvatarItem? _selectedAvatar;
     private string _errorMessage = string.Empty;
 
+    #endregion
+
+    #region Collections
+
     public ObservableCollection<AvatarItem> AvailableAvatars { get; } = new();
+
+    #endregion
+
+    #region Bindable Properties
 
     public string Username
     {
@@ -25,7 +35,9 @@ public class CreateUserVM : BaseVM
         set
         {
             if (SetProperty(ref _username, value))
-                CreateProfileCommandAsRelay?.RaiseCanExecuteChanged();
+            {
+                CreateProfileRelayCommand?.RaiseCanExecuteChanged();
+            }
         }
     }
 
@@ -38,12 +50,13 @@ public class CreateUserVM : BaseVM
             {
                 OnPropertyChanged(nameof(SelectedAvatarPath));
                 OnPropertyChanged(nameof(SelectedAvatarFullPath));
-                CreateProfileCommandAsRelay?.RaiseCanExecuteChanged();
+                CreateProfileRelayCommand?.RaiseCanExecuteChanged();
             }
         }
     }
 
     public string SelectedAvatarPath => SelectedAvatar?.RelativePath ?? string.Empty;
+
     public string SelectedAvatarFullPath => SelectedAvatar?.FullPath ?? string.Empty;
 
     public string ErrorMessage
@@ -52,14 +65,29 @@ public class CreateUserVM : BaseVM
         set => SetProperty(ref _errorMessage, value);
     }
 
+    #endregion
+
+    #region Commands
+
     public ICommand BrowseAvatarCommand { get; }
+
     public ICommand CreateProfileCommand { get; }
+
     public ICommand CancelCommand { get; }
 
-    private RelayCommand? CreateProfileCommandAsRelay => CreateProfileCommand as RelayCommand;
+    private RelayCommand? CreateProfileRelayCommand => CreateProfileCommand as RelayCommand;
+
+    #endregion
+
+    #region Events
 
     public event Action<User>? ProfileCreated;
+
     public event Action? CancelRequested;
+
+    #endregion
+
+    #region Constructors
 
     public CreateUserVM(IUserService userService)
     {
@@ -72,25 +100,23 @@ public class CreateUserVM : BaseVM
         CancelCommand = new RelayCommand(_ => CancelRequested?.Invoke());
     }
 
+    #endregion
+
+    #region Private Avatar Methods
+
     private void LoadAvailableAvatars()
     {
         AvailableAvatars.Clear();
 
-        foreach (var avatar in _userService.GetAllAvailableAvatars())
+        foreach (string avatarPath in _userService.GetAllAvailableAvatars())
         {
-            AvailableAvatars.Add(new AvatarItem(avatar));
+            AvailableAvatars.Add(new AvatarItem(avatarPath));
         }
-    }
-
-    private bool CanCreateProfile()
-    {
-        return !string.IsNullOrWhiteSpace(Username)
-               && SelectedAvatar != null;
     }
 
     private void BrowseAvatar()
     {
-        var dialog = new OpenFileDialog
+        OpenFileDialog dialog = new()
         {
             Title = "Select avatar",
             Filter = "Image Files|*.png;*.jpg;*.jpeg;*.gif",
@@ -98,33 +124,38 @@ public class CreateUserVM : BaseVM
         };
 
         if (dialog.ShowDialog() != true)
+        {
             return;
+        }
 
         try
         {
-            string avatarsFolder = Path.Combine(
+            string customAvatarsFolderPath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Assets",
                 "Avatars",
                 "Custom");
 
-            Directory.CreateDirectory(avatarsFolder);
+            Directory.CreateDirectory(customAvatarsFolderPath);
 
-            string sourcePath = Path.GetFullPath(dialog.FileName);
-            string fileName = Path.GetFileName(sourcePath);
-            string destinationPath = Path.GetFullPath(Path.Combine(avatarsFolder, fileName));
+            string sourceFilePath = Path.GetFullPath(dialog.FileName);
+            string fileName = Path.GetFileName(sourceFilePath);
+            string destinationFilePath = Path.GetFullPath(Path.Combine(customAvatarsFolderPath, fileName));
 
-            string relativePath = PathHelper.ToRelativePath(destinationPath);
+            string relativePath = PathHelper.ToRelativePath(destinationFilePath);
 
-            bool sameFile = string.Equals(sourcePath, destinationPath, StringComparison.OrdinalIgnoreCase);
+            bool isSameFile = string.Equals(
+                sourceFilePath,
+                destinationFilePath,
+                StringComparison.OrdinalIgnoreCase);
 
-            if (!sameFile && !File.Exists(destinationPath))
+            if (!isSameFile && !File.Exists(destinationFilePath))
             {
-                File.Copy(sourcePath, destinationPath);
+                File.Copy(sourceFilePath, destinationFilePath);
             }
 
-            var existingAvatar = AvailableAvatars
-                .FirstOrDefault(a => a.RelativePath.Equals(relativePath, StringComparison.OrdinalIgnoreCase));
+            AvatarItem? existingAvatar = AvailableAvatars.FirstOrDefault(avatar =>
+                avatar.RelativePath.Equals(relativePath, StringComparison.OrdinalIgnoreCase));
 
             if (existingAvatar == null)
             {
@@ -135,24 +166,34 @@ public class CreateUserVM : BaseVM
             SelectedAvatar = existingAvatar;
             ErrorMessage = string.Empty;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Could not load avatar: {ex.Message}";
+            ErrorMessage = $"Could not load avatar: {exception.Message}";
         }
+    }
+
+    #endregion
+
+    #region Private Profile Methods
+
+    private bool CanCreateProfile()
+    {
+        return !string.IsNullOrWhiteSpace(Username)
+               && SelectedAvatar != null;
     }
 
     private void CreateProfile()
     {
         ErrorMessage = string.Empty;
-        string trimmedName = Username.Trim();
+        string trimmedUsername = Username.Trim();
 
-        if (!IsValidUsername(trimmedName))
+        if (!IsValidUsername(trimmedUsername))
         {
             ErrorMessage = "The username can only contain letters, numbers, and underscores, with no spaces.";
             return;
         }
 
-        if (_userService.UserExists(trimmedName))
+        if (_userService.UserExists(trimmedUsername))
         {
             ErrorMessage = "A user with this name already exists.";
             return;
@@ -164,26 +205,36 @@ public class CreateUserVM : BaseVM
             return;
         }
 
-        var user = new User
+        User newUser = new()
         {
-            Username = trimmedName,
+            Username = trimmedUsername,
             AvatarPath = SelectedAvatar.RelativePath,
             Level = 1,
             GamesPlayed = 0,
             GamesWon = 0
         };
 
-        ProfileCreated?.Invoke(user);
+        ProfileCreated?.Invoke(newUser);
     }
+
+    #endregion
+
+    #region Private Validation Methods
 
     private bool IsValidUsername(string username)
     {
         if (string.IsNullOrWhiteSpace(username))
+        {
             return false;
+        }
 
         if (username.Contains(' '))
+        {
             return false;
+        }
 
-        return username.All(ch => char.IsLetterOrDigit(ch) || ch == '_');
+        return username.All(character => char.IsLetterOrDigit(character) || character == '_');
     }
+
+    #endregion
 }

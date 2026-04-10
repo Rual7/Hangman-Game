@@ -5,7 +5,13 @@ namespace Hangman_Game.ViewModels.Base;
 
 public class BaseVM : INotifyPropertyChanged
 {
+    #region Events
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    #endregion
+
+    #region Protected Notification Methods
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -14,11 +20,15 @@ public class BaseVM : INotifyPropertyChanged
 
     protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value))
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
             return false;
+        }
 
         field = value;
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    #endregion
 }

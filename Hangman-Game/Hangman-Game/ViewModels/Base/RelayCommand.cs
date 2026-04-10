@@ -4,29 +4,45 @@ namespace Hangman_Game.ViewModels.Base;
 
 public class RelayCommand : ICommand
 {
-    private readonly Action<object?> _execute;
-    private readonly Predicate<object?>? _canExecute;
+    #region Fields
 
-    public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
-    {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
-    }
+    private readonly Action<object?> _executeAction;
+    private readonly Predicate<object?>? _canExecutePredicate;
+
+    #endregion
+
+    #region Events
 
     public event EventHandler? CanExecuteChanged;
 
+    #endregion
+
+    #region Constructors
+
+    public RelayCommand(Action<object?> executeAction, Predicate<object?>? canExecutePredicate = null)
+    {
+        _executeAction = executeAction ?? throw new ArgumentNullException(nameof(executeAction));
+        _canExecutePredicate = canExecutePredicate;
+    }
+
+    #endregion
+
+    #region Public Command Methods
+
     public bool CanExecute(object? parameter)
     {
-        return _canExecute == null || _canExecute(parameter);
+        return _canExecutePredicate == null || _canExecutePredicate(parameter);
     }
 
     public void Execute(object? parameter)
     {
-        _execute(parameter);
+        _executeAction(parameter);
     }
 
     public void RaiseCanExecuteChanged()
     {
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    #endregion
 }

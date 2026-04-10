@@ -9,10 +9,20 @@ namespace Hangman_Game.ViewModels;
 
 public class StartVM : BaseVM
 {
+    #region Fields
+
     private readonly IUserService _userService;
     private User? _selectedUser;
 
+    #endregion
+
+    #region Collections
+
     public ObservableCollection<User> Users { get; } = new();
+
+    #endregion
+
+    #region Bindable Properties
 
     public User? SelectedUser
     {
@@ -21,8 +31,8 @@ public class StartVM : BaseVM
         {
             if (SetProperty(ref _selectedUser, value))
             {
-                DeleteUserCommandAsRelay?.RaiseCanExecuteChanged();
-                PlayCommandAsRelay?.RaiseCanExecuteChanged();
+                DeleteUserRelayCommand?.RaiseCanExecuteChanged();
+                PlayRelayCommand?.RaiseCanExecuteChanged();
                 OnPropertyChanged(nameof(HasSelectedUser));
             }
         }
@@ -30,18 +40,37 @@ public class StartVM : BaseVM
 
     public bool HasSelectedUser => SelectedUser != null;
 
+    #endregion
+
+    #region Commands
+
     public ICommand NewProfileCommand { get; }
+
     public ICommand DeleteUserCommand { get; }
+
     public ICommand PlayCommand { get; }
+
     public ICommand ExitCommand { get; }
 
-    private RelayCommand? DeleteUserCommandAsRelay => DeleteUserCommand as RelayCommand;
-    private RelayCommand? PlayCommandAsRelay => PlayCommand as RelayCommand;
+    private RelayCommand? DeleteUserRelayCommand => DeleteUserCommand as RelayCommand;
+
+    private RelayCommand? PlayRelayCommand => PlayCommand as RelayCommand;
+
+    #endregion
+
+    #region Events
 
     public event Action? NewProfileRequested;
+
     public event Action? DeleteUserRequested;
+
     public event Action<User>? PlayRequested;
+
     public event Action? ExitRequested;
+
+    #endregion
+
+    #region Constructors
 
     public StartVM(IUserService userService)
     {
@@ -55,11 +84,15 @@ public class StartVM : BaseVM
         LoadUsers();
     }
 
+    #endregion
+
+    #region Public Methods
+
     public void LoadUsers()
     {
         Users.Clear();
 
-        foreach (var user in _userService.GetAllUsers())
+        foreach (User user in _userService.GetAllUsers())
         {
             Users.Add(user);
         }
@@ -72,25 +105,26 @@ public class StartVM : BaseVM
         _userService.AddUser(user);
         LoadUsers();
 
-        foreach (var existingUser in Users)
+        User? addedUser = Users.FirstOrDefault(existingUser =>
+            existingUser.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
+
+        if (addedUser != null)
         {
-            if (existingUser.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
-            {
-                SelectedUser = existingUser;
-                break;
-            }
+            SelectedUser = addedUser;
         }
     }
 
     public void DeleteSelectedUser()
     {
         if (SelectedUser == null)
+        {
             return;
+        }
 
         string username = SelectedUser.Username;
 
-        var saveGameService = new SaveGameService();
-        var statisticsService = new StatisticsService();
+        ISaveGameService saveGameService = new SaveGameService();
+        IStatisticsService statisticsService = new StatisticsService();
 
         saveGameService.DeleteAllSaves(username);
         statisticsService.DeleteUserStatistics(username);
@@ -99,6 +133,10 @@ public class StartVM : BaseVM
         LoadUsers();
     }
 
+    #endregion
+
+    #region Private Methods
+
     private void StartGame()
     {
         if (SelectedUser != null)
@@ -106,4 +144,6 @@ public class StartVM : BaseVM
             PlayRequested?.Invoke(SelectedUser);
         }
     }
+
+    #endregion
 }

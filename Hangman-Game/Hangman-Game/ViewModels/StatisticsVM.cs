@@ -8,15 +8,37 @@ namespace Hangman_Game.ViewModels;
 
 public class StatisticsVM : BaseVM
 {
+    #region Fields
+
     private readonly IStatisticsService _statisticsService;
+
+    #endregion
+
+    #region Collections
 
     public ObservableCollection<UserCategoryStatistic> Statistics { get; } = new();
 
+    #endregion
+
+    #region Bindable Properties
+
     public bool HasStatistics => Statistics.Count > 0;
+
+    #endregion
+
+    #region Commands
 
     public ICommand CloseCommand { get; }
 
+    #endregion
+
+    #region Events
+
     public event Action? CloseRequested;
+
+    #endregion
+
+    #region Constructors
 
     public StatisticsVM(IStatisticsService statisticsService)
     {
@@ -27,18 +49,24 @@ public class StatisticsVM : BaseVM
         LoadStatistics();
     }
 
+    #endregion
+
+    #region Public Methods
+
     public void LoadStatistics()
     {
         Statistics.Clear();
 
-        foreach (var item in _statisticsService
+        foreach (UserCategoryStatistic statistic in _statisticsService
                      .GetAllStatistics()
-                     .OrderBy(s => s.Username)
-                     .ThenBy(s => s.Category))
+                     .OrderBy(statistic => statistic.Username)
+                     .ThenBy(statistic => statistic.Category))
         {
-            Statistics.Add(item);
+            Statistics.Add(statistic);
         }
 
         OnPropertyChanged(nameof(HasStatistics));
     }
+
+    #endregion
 }

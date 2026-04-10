@@ -7,7 +7,13 @@ namespace Hangman_Game.Views;
 
 public partial class StartWindow : Window
 {
+    #region Fields
+
     private readonly StartVM _viewModel;
+
+    #endregion
+
+    #region Constructors
 
     public StartWindow()
     {
@@ -21,58 +27,60 @@ public partial class StartWindow : Window
         _viewModel.PlayRequested += OnPlayRequested;
         _viewModel.ExitRequested += OnExitRequested;
     }
+
+    #endregion
+
+    #region Private Event Handlers
+
+    private void OnNewProfileRequested()
+    {
+        CreateUserWindow createUserWindow = new()
+        {
+            Owner = this
+        };
+
+        createUserWindow.ShowDialog();
+    }
+
     private void OnDeleteUserRequested()
     {
         if (_viewModel.SelectedUser == null)
+        {
             return;
+        }
 
-        var result = MessageBox.Show(
-            $"Are you sure you want to delete user '{_viewModel.SelectedUser.Username}'?\n\n" +
-            "This will delete:\n- all saved games\n- all statistics\n- avatar (if custom)",
+        MessageBoxResult result = MessageBox.Show(
+            $"Are you sure you want to delete user '{_viewModel.SelectedUser.Username}'?",
             "Confirm Delete",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
         if (result != MessageBoxResult.Yes)
+        {
             return;
+        }
 
         _viewModel.DeleteSelectedUser();
-    }
-    private void OnNewProfileRequested()
-    {
-        var createWindow = new CreateUserWindow();
-        createWindow.Owner = this;
-        createWindow.ShowDialog();
     }
 
     private void OnPlayRequested(User user)
     {
-        string usernameToReselect = user.Username;
-
-        var gameWindow = new GameWindow(user);
-
-        gameWindow.Closed += (_, _) =>
+        GameWindow gameWindow = new(user)
         {
-            _viewModel.LoadUsers();
-
-            var refreshedUser = _viewModel.Users
-                .FirstOrDefault(u => u.Username.Equals(usernameToReselect, StringComparison.OrdinalIgnoreCase));
-
-            if (refreshedUser != null)
-            {
-                _viewModel.SelectedUser = refreshedUser;
-            }
-
-            Show();
-            Activate();
+            Owner = this
         };
 
         Hide();
-        gameWindow.Show();
+        gameWindow.ShowDialog();
+        Show();
+
+        _viewModel.LoadUsers();
     }
 
     private void OnExitRequested()
     {
         Close();
     }
+
+    #endregion
 }

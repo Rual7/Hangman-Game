@@ -3,7 +3,6 @@ using Hangman_Game.Models;
 using Hangman_Game.Services.Interfaces;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
 
 namespace Hangman_Game.Services;
 

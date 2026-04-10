@@ -14,6 +14,8 @@ namespace Hangman_Game.ViewModels;
 
 public class GameVM : BaseVM
 {
+    #region Fields
+
     private readonly IGameService _gameService;
     private readonly ISaveGameService _saveGameService;
     private readonly IStatisticsService _statisticsService;
@@ -34,7 +36,9 @@ public class GameVM : BaseVM
     private bool _isLevel2Failed;
     private bool _isLevel3Failed;
 
-    public User CurrentUser { get; }
+    #endregion
+
+    #region Collections
 
     public ObservableCollection<string> Categories { get; } = new();
     public ObservableCollection<SavedGame> UserSaves { get; } = new();
@@ -44,6 +48,12 @@ public class GameVM : BaseVM
     public ObservableCollection<char> KeyboardRow1 { get; } = new() { 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P' };
     public ObservableCollection<char> KeyboardRow2 { get; } = new() { 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L' };
     public ObservableCollection<char> KeyboardRow3 { get; } = new() { 'Z', 'X', 'C', 'V', 'B', 'N', 'M' };
+
+    #endregion
+
+    #region Public Properties
+
+    public User CurrentUser { get; }
 
     public MenuCommands Menu { get; }
 
@@ -142,13 +152,25 @@ public class GameVM : BaseVM
         }
     }
 
+    #endregion
+
+    #region Commands
+
     public ICommand GuessLetterCommand { get; }
+
+    #endregion
+
+    #region Events
 
     public event Action? CancelRequested;
     public event Action? StatisticsRequested;
     public event Action? AboutRequested;
     public event Func<string?>? SaveNameRequested;
     public event Func<bool>? ConfirmCloseRequested;
+
+    #endregion
+
+    #region Constructors
 
     public GameVM(
         User currentUser,
@@ -162,7 +184,7 @@ public class GameVM : BaseVM
         _statisticsService = statisticsService;
         _gameAlreadyCounted = false;
 
-        foreach (var category in _gameService.GetCategories())
+        foreach (string category in _gameService.GetCategories())
         {
             Categories.Add(category);
         }
@@ -189,6 +211,30 @@ public class GameVM : BaseVM
         RefreshSaveList();
         RefreshDerivedState();
     }
+
+    #endregion
+
+    #region Public Window Methods
+
+    public bool ConfirmWindowClose()
+    {
+        if (_suppressCloseConfirmationOnce)
+        {
+            _suppressCloseConfirmationOnce = false;
+            return true;
+        }
+
+        if (!HasActiveSession)
+        {
+            return true;
+        }
+
+        return ConfirmCloseRequested?.Invoke() ?? true;
+    }
+
+    #endregion
+
+    #region Private Game Flow Methods
 
     private void StartNewGame()
     {
@@ -225,7 +271,7 @@ public class GameVM : BaseVM
             return;
         }
 
-        var savedGame = GameMapper.ToSavedGame(CurrentSession, saveName.Trim());
+        SavedGame savedGame = GameMapper.ToSavedGame(CurrentSession, saveName.Trim());
         _saveGameService.SaveGame(savedGame);
 
         RefreshSaveList();
@@ -234,7 +280,8 @@ public class GameVM : BaseVM
 
     private void OpenSavedGame(string saveName)
     {
-        var savedGame = _saveGameService.LoadGame(CurrentUser.Username, saveName);
+        SavedGame? savedGame = _saveGameService.LoadGame(CurrentUser.Username, saveName);
+
         if (savedGame == null)
         {
             StatusMessage = "Save not found.";
@@ -258,18 +305,16 @@ public class GameVM : BaseVM
         StartTimer();
     }
 
-    private void ShowStatistics()
-    {
-        StatisticsRequested?.Invoke();
-    }
-
     private void CancelGame()
     {
         if (HasActiveSession)
         {
             bool canClose = ConfirmCloseRequested?.Invoke() ?? true;
+
             if (!canClose)
+            {
                 return;
+            }
 
             _suppressCloseConfirmationOnce = true;
         }
@@ -278,32 +323,25 @@ public class GameVM : BaseVM
         CancelRequested?.Invoke();
     }
 
+    private void ShowStatistics()
+    {
+        StatisticsRequested?.Invoke();
+    }
+
     private void ShowAbout()
     {
         AboutRequested?.Invoke();
     }
 
-    public bool ConfirmWindowClose()
-    {
-        if (_suppressCloseConfirmationOnce)
-        {
-            _suppressCloseConfirmationOnce = false;
-            return true;
-        }
-
-        if (!HasActiveSession)
-            return true;
-
-        return ConfirmCloseRequested?.Invoke() ?? true;
-    }
-
     private void GuessLetter(object? parameter)
     {
         if (CurrentSession == null || parameter == null || !HasActiveSession)
+        {
             return;
+        }
 
-        char letter = ExtractLetter(parameter);
-        bool wasCorrect = _gameService.GuessLetter(CurrentSession, letter);
+        char selectedLetter = ExtractLetter(parameter);
+        bool wasCorrect = _gameService.GuessLetter(CurrentSession, selectedLetter);
 
         RefreshDerivedState();
         RaiseLetterCommandsCanExecute();
@@ -333,69 +371,23 @@ public class GameVM : BaseVM
         }
 
         StatusMessage = wasCorrect
-            ? $"Correct letter: {char.ToUpper(letter)}"
-            : $"Wrong letter: {char.ToUpper(letter)}";
+            ? $"Correct letter: {char.ToUpper(selectedLetter)}"
+            : $"Wrong letter: {char.ToUpper(selectedLetter)}";
     }
 
     private bool CanGuessLetter(object? parameter)
     {
         if (CurrentSession == null || parameter == null || !HasActiveSession)
+        {
             return false;
+        }
 
-        char letter = ExtractLetter(parameter);
-        letter = char.ToLower(letter);
+        char selectedLetter = char.ToLower(ExtractLetter(parameter));
 
-        return !CurrentSession.GuessedLetters.Contains(letter)
-               && !CurrentSession.WrongLetters.Contains(letter)
+        return !CurrentSession.GuessedLetters.Contains(selectedLetter)
+               && !CurrentSession.WrongLetters.Contains(selectedLetter)
                && !_gameService.IsLevelLost(CurrentSession)
                && !_gameService.IsLevelWon(CurrentSession);
-    }
-
-    private char ExtractLetter(object parameter)
-    {
-        if (parameter is char c)
-            return c;
-
-        if (parameter is string s && s.Length == 1)
-            return s[0];
-
-        throw new InvalidOperationException("Invalid letter parameter.");
-    }
-
-    private void OnTimerTick(object? sender, EventArgs e)
-    {
-        if (CurrentSession == null)
-        {
-            StopTimer();
-            return;
-        }
-
-        if (CurrentSession.RemainingSeconds > 0)
-        {
-            CurrentSession.RemainingSeconds--;
-        }
-
-        UpdateTimeDisplay();
-
-        if (CurrentSession.RemainingSeconds <= 0)
-        {
-            HandleLevelFailed();
-        }
-    }
-
-    private void StartTimer()
-    {
-        if (!HasActiveSession)
-            return;
-
-        UpdateTimeDisplay();
-        _timer.Stop();
-        _timer.Start();
-    }
-
-    private void StopTimer()
-    {
-        _timer.Stop();
     }
 
     private void HandleLevelFailed()
@@ -439,12 +431,230 @@ public class GameVM : BaseVM
         RaiseLetterCommandsCanExecute();
     }
 
-    private void ResetFailedIndicators()
+    #endregion
+
+    #region Private Timer Methods
+
+    private void StartTimer()
     {
-        IsLevel1Failed = false;
-        IsLevel2Failed = false;
-        IsLevel3Failed = false;
+        if (!HasActiveSession)
+        {
+            return;
+        }
+
+        UpdateTimeDisplay();
+        _timer.Stop();
+        _timer.Start();
     }
+
+    private void StopTimer()
+    {
+        _timer.Stop();
+    }
+
+    private void OnTimerTick(object? sender, EventArgs e)
+    {
+        if (CurrentSession == null)
+        {
+            StopTimer();
+            return;
+        }
+
+        if (CurrentSession.RemainingSeconds > 0)
+        {
+            CurrentSession.RemainingSeconds--;
+        }
+
+        UpdateTimeDisplay();
+
+        if (CurrentSession.RemainingSeconds <= 0)
+        {
+            HandleLevelFailed();
+        }
+    }
+
+    #endregion
+
+    #region Private Save and Category Methods
+
+    private void RefreshSaveList()
+    {
+        UserSaves.Clear();
+        SavedGamesMenuItems.Clear();
+
+        IEnumerable<SavedGame> saves = _saveGameService
+            .GetAllSaves(CurrentUser.Username)
+            .OrderByDescending(save => save.SavedAt);
+
+        foreach (SavedGame save in saves)
+        {
+            UserSaves.Add(save);
+
+            SavedGamesMenuItems.Add(new SaveMenuItemVM
+            {
+                Header = save.SaveName,
+                Command = new RelayCommand(_ => OpenSavedGame(save.SaveName)),
+                CommandParameter = save.SaveName
+            });
+        }
+
+        OnPropertyChanged(nameof(HasSavedGames));
+    }
+
+    private void BuildCategoryMenuItems()
+    {
+        CategoryMenuItems.Clear();
+
+        foreach (string category in Categories)
+        {
+            CategoryMenuItems.Add(new CategoryMenuItemVM
+            {
+                Header = category,
+                IsChecked = string.Equals(category, SelectedCategory, StringComparison.OrdinalIgnoreCase),
+                Command = new RelayCommand(_ => SelectCategory(category)),
+                CommandParameter = category
+            });
+        }
+
+        SyncCategoryChecks(SelectedCategory);
+    }
+
+    private void SyncCategoryChecks(string selectedCategory)
+    {
+        foreach (CategoryMenuItemVM categoryItem in CategoryMenuItems)
+        {
+            categoryItem.IsChecked = string.Equals(
+                categoryItem.Header,
+                selectedCategory,
+                StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private void SelectCategory(string category)
+    {
+        string previousCategory = SelectedCategory;
+
+        if (HasActiveSession)
+        {
+            if (string.Equals(previousCategory, category, StringComparison.OrdinalIgnoreCase))
+            {
+                SyncCategoryChecks(previousCategory);
+                return;
+            }
+
+            MessageBoxResult result = MessageBox.Show(
+                "Changing category will reset your current progress. Continue?",
+                "Confirm Category Change",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.OK)
+            {
+                SyncCategoryChecks(previousCategory);
+                return;
+            }
+
+            _gameService.ResetProgress(CurrentSession!, category);
+            _gameAlreadyCounted = false;
+            _displayCompletedLevels = 0;
+            ResetFailedIndicators();
+            _isAwaitingRestart = false;
+
+            SelectedCategory = CurrentSession!.Category;
+            RefreshDerivedState();
+            RaiseLetterCommandsCanExecute();
+            StartTimer();
+
+            StatusMessage = $"Category changed to {CurrentSession.Category}. Progress reset.";
+            return;
+        }
+
+        SelectedCategory = category;
+        SyncCategoryChecks(category);
+
+        if (!_isAwaitingRestart)
+        {
+            StatusMessage = $"Category selected: {category}";
+        }
+    }
+
+    #endregion
+
+    #region Private User Progress Methods
+
+    private void RegisterGameFinished(bool won)
+    {
+        if (CurrentSession == null || _gameAlreadyCounted)
+        {
+            return;
+        }
+
+        _statisticsService.RegisterGamePlayed(
+            CurrentSession.Username,
+            CurrentSession.Category,
+            won);
+
+        _gameAlreadyCounted = true;
+        UpdateUserProgress(won);
+    }
+
+    private void UpdateUserProgress(bool won)
+    {
+        CurrentUser.GamesPlayed++;
+
+        if (won)
+        {
+            CurrentUser.GamesWon++;
+            CurrentUser.Level++;
+        }
+
+        SaveCurrentUserToFile();
+        OnPropertyChanged(nameof(UserLevelDisplay));
+    }
+
+    private void SaveCurrentUserToFile()
+    {
+        string usersFilePath = PathHelper.EnsureFileExists(Path.Combine("Data", "users.json"), "[]");
+
+        List<User> users;
+
+        try
+        {
+            string json = File.ReadAllText(usersFilePath);
+            users = string.IsNullOrWhiteSpace(json)
+                ? new List<User>()
+                : JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+        }
+        catch
+        {
+            users = new List<User>();
+        }
+
+        User? existingUser = users.FirstOrDefault(user =>
+            user.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase));
+
+        if (existingUser == null)
+        {
+            return;
+        }
+
+        existingUser.Level = CurrentUser.Level;
+        existingUser.GamesPlayed = CurrentUser.GamesPlayed;
+        existingUser.GamesWon = CurrentUser.GamesWon;
+        existingUser.AvatarPath = CurrentUser.AvatarPath;
+
+        JsonSerializerOptions serializerOptions = new()
+        {
+            WriteIndented = true
+        };
+
+        string updatedJson = JsonSerializer.Serialize(users, serializerOptions);
+        File.WriteAllText(usersFilePath, updatedJson);
+    }
+
+    #endregion
+
+    #region Private UI Refresh Methods
 
     private void RefreshDerivedState()
     {
@@ -482,176 +692,39 @@ public class GameVM : BaseVM
             : TimeSpan.FromSeconds(CurrentSession.RemainingSeconds).ToString(@"mm\:ss");
     }
 
-    private void RefreshSaveList()
-    {
-        UserSaves.Clear();
-        SavedGamesMenuItems.Clear();
-
-        var saves = _saveGameService.GetAllSaves(CurrentUser.Username);
-
-        foreach (var save in saves.OrderByDescending(s => s.SavedAt))
-        {
-            UserSaves.Add(save);
-
-            SavedGamesMenuItems.Add(new SaveMenuItemVM
-            {
-                Header = save.SaveName,
-                Command = new RelayCommand(_ => OpenSavedGame(save.SaveName)),
-                CommandParameter = save.SaveName
-            });
-        }
-
-        OnPropertyChanged(nameof(HasSavedGames));
-    }
-
-    private void BuildCategoryMenuItems()
-    {
-        CategoryMenuItems.Clear();
-
-        foreach (var category in Categories)
-        {
-            CategoryMenuItems.Add(new CategoryMenuItemVM
-            {
-                Header = category,
-                IsChecked = string.Equals(category, SelectedCategory, StringComparison.OrdinalIgnoreCase),
-                Command = new RelayCommand(_ => SelectCategory(category)),
-                CommandParameter = category
-            });
-        }
-
-        SyncCategoryChecks(SelectedCategory);
-    }
-
-    private void SyncCategoryChecks(string selectedCategory)
-    {
-        foreach (var item in CategoryMenuItems)
-        {
-            item.IsChecked = string.Equals(
-                item.Header,
-                selectedCategory,
-                StringComparison.OrdinalIgnoreCase);
-        }
-    }
-
-    private void SelectCategory(string category)
-    {
-        string previousCategory = SelectedCategory;
-
-        if (HasActiveSession)
-        {
-            if (string.Equals(previousCategory, category, StringComparison.OrdinalIgnoreCase))
-            {
-                SyncCategoryChecks(previousCategory);
-                return;
-            }
-
-            var result = MessageBox.Show(
-                "Changing category will reset your current progress. Continue?",
-                "Confirm Category Change",
-                MessageBoxButton.OKCancel,
-                MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.OK)
-            {
-                SyncCategoryChecks(previousCategory);
-                return;
-            }
-
-            _gameService.ResetProgress(CurrentSession!, category);
-            _gameAlreadyCounted = false;
-            _displayCompletedLevels = 0;
-            ResetFailedIndicators();
-            _isAwaitingRestart = false;
-
-            SelectedCategory = CurrentSession!.Category;
-            RefreshDerivedState();
-            RaiseLetterCommandsCanExecute();
-            StartTimer();
-
-            StatusMessage = $"Category changed to {CurrentSession.Category}. Progress reset.";
-            return;
-        }
-
-        SelectedCategory = category;
-        SyncCategoryChecks(category);
-
-        if (!_isAwaitingRestart)
-        {
-            StatusMessage = $"Category selected: {category}";
-        }
-    }
-
-    private void RegisterGameFinished(bool won)
-    {
-        if (CurrentSession == null || _gameAlreadyCounted)
-            return;
-
-        _statisticsService.RegisterGamePlayed(
-            CurrentSession.Username,
-            CurrentSession.Category,
-            won);
-
-        _gameAlreadyCounted = true;
-        UpdateUserProgress(won);
-    }
-
-    private void UpdateUserProgress(bool won)
-    {
-        CurrentUser.GamesPlayed++;
-
-        if (won)
-        {
-            CurrentUser.GamesWon++;
-            CurrentUser.Level++;
-        }
-
-        SaveCurrentUserToFile();
-        OnPropertyChanged(nameof(UserLevelDisplay));
-    }
-
-    private void SaveCurrentUserToFile()
-    {
-        string usersFile = PathHelper.EnsureFileExists(Path.Combine("Data", "users.json"), "[]");
-
-        List<User> users;
-
-        try
-        {
-            string json = File.ReadAllText(usersFile);
-            users = string.IsNullOrWhiteSpace(json)
-                ? new List<User>()
-                : JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-        }
-        catch
-        {
-            users = new List<User>();
-        }
-
-        var existingUser = users.FirstOrDefault(u =>
-            u.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase));
-
-        if (existingUser == null)
-            return;
-
-        existingUser.Level = CurrentUser.Level;
-        existingUser.GamesPlayed = CurrentUser.GamesPlayed;
-        existingUser.GamesWon = CurrentUser.GamesWon;
-        existingUser.AvatarPath = CurrentUser.AvatarPath;
-
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
-
-        string updatedJson = JsonSerializer.Serialize(users, options);
-        File.WriteAllText(usersFile, updatedJson);
-    }
-
     private void RaiseLetterCommandsCanExecute()
     {
-        if (GuessLetterCommand is RelayCommand relay)
+        if (GuessLetterCommand is RelayCommand relayCommand)
         {
-            relay.RaiseCanExecuteChanged();
+            relayCommand.RaiseCanExecuteChanged();
         }
     }
+
+    private void ResetFailedIndicators()
+    {
+        IsLevel1Failed = false;
+        IsLevel2Failed = false;
+        IsLevel3Failed = false;
+    }
+
+    #endregion
+
+    #region Private Helper Methods
+
+    private char ExtractLetter(object parameter)
+    {
+        if (parameter is char character)
+        {
+            return character;
+        }
+
+        if (parameter is string text && text.Length == 1)
+        {
+            return text[0];
+        }
+
+        throw new InvalidOperationException("Invalid letter parameter.");
+    }
+
+    #endregion
 }
