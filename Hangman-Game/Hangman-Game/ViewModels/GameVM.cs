@@ -264,12 +264,13 @@ public class GameVM : BaseVM
             StatusMessage = "There is no active game to save.";
             return;
         }
-
+        _timer.Stop();
         string? saveName = SaveNameRequested?.Invoke();
 
         if (string.IsNullOrWhiteSpace(saveName))
         {
             StatusMessage = "Save cancelled.";
+            _timer.Start();
             return;
         }
 
@@ -278,6 +279,7 @@ public class GameVM : BaseVM
 
         RefreshSaveList();
         StatusMessage = $"Game saved as '{savedGame.SaveName}'.";
+        _timer.Start();
     }
 
     private void OpenSavedGame(string saveName)
@@ -327,12 +329,16 @@ public class GameVM : BaseVM
 
     private void ShowStatistics()
     {
+        _timer.Stop();
         StatisticsRequested?.Invoke();
+        _timer.Start();
     }
 
     private void ShowAbout()
     {
+        _timer.Stop();
         AboutRequested?.Invoke();
+        _timer.Start();
     }
 
     private void GuessLetter(object? parameter)
@@ -543,7 +549,7 @@ public class GameVM : BaseVM
                 SyncCategoryChecks(previousCategory);
                 return;
             }
-
+            _timer.Stop();
             MessageBoxResult result = MessageBox.Show(
                 "Changing category will reset your current progress. Continue?",
                 "Confirm Category Change",
@@ -553,6 +559,7 @@ public class GameVM : BaseVM
             if (result != MessageBoxResult.OK)
             {
                 SyncCategoryChecks(previousCategory);
+                _timer.Start();
                 return;
             }
 
