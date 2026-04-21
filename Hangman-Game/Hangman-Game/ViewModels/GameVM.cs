@@ -313,10 +313,12 @@ public class GameVM : BaseVM
     {
         if (HasActiveSession)
         {
+            _timer.Stop();
             bool canClose = ConfirmCloseRequested?.Invoke() ?? true;
 
             if (!canClose)
             {
+                _timer.Start();
                 return;
             }
 
